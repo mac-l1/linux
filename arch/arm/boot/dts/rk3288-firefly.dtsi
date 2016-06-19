@@ -235,6 +235,29 @@
 	status = "ok";
 };
 
+&gpu {
+	mali-supply = <&vdd_gpu>;
+	vdd_gpu-supply = <&vdd_gpu>;
+	status = "okay";
+};
+/*
+&grf {
+	io_domains: io-domains {
+		compatible = "rockchip,rk3288-io-voltage-domain";
+
+		audio-supply = <&vcca_33>;
+		bb-supply = <&vcc_io>;
+		dvp-supply = <&dovdd_1v8>;
+		flash0-supply = <&vcc_flash>;
+		flash1-supply = <&vcc_lan>;
+		gpio30-supply = <&vcc_io>;
+		gpio1830-supply = <&vcc_io>;
+		lcdc-supply = <&vcc_io>;
+		sdcard-supply = <&vccio_sd>;
+		wifi-supply = <&vccio_wl>;
+	};
+};
+*/
 &hdmi {
 	ddc-i2c-bus = <&i2c5>;
 	status = "okay";
@@ -244,7 +267,7 @@
 	clock-frequency = <400000>;
 	status = "okay";
 
-	vdd_cpu: syr827@40 {
+	vdd_cpu: vdd_cpu@40 {
 		compatible = "silergy,syr827";
 		fcs,suspend-voltage-selector = <1>;
 		reg = <0x40>;
@@ -258,7 +281,7 @@
 		vin-supply = <&vcc_sys>;
 	};
 
-	vdd_gpu: syr828@41 {
+	vdd_gpu: vdd_gpu@41 {
 		compatible = "silergy,syr828";
 		fcs,suspend-voltage-selector = <1>;
 		reg = <0x41>;
@@ -266,6 +289,9 @@
 		regulator-min-microvolt = <850000>;
 		regulator-max-microvolt = <1350000>;
 		regulator-always-on;
+		regulator-boot-on;
+		regulator-enable-ramp-delay = <300>;
+		regulator-ramp-delay = <8000>;
 		vin-supply = <&vcc_sys>;
 	};
 

@@ -65,6 +65,17 @@ const char *__bdevname(dev_t dev, char *buffer)
 
 EXPORT_SYMBOL(__bdevname);
 
+#if CONFIG_MMC_DW_ROCKCHIP
+static ssize_t part_volname_show(struct device *dev,
+				   struct device_attribute *attr, char *buf)
+{
+	struct hd_struct *p = dev_to_part(dev);
+
+	return sprintf(buf, "%s\n", (p->info && p->info->volname[0]) \
+				   ? (char *)p->info->volname : "");
+}
+#endif
+
 static ssize_t part_partition_show(struct device *dev,
 				   struct device_attribute *attr, char *buf)
 {
@@ -168,6 +179,9 @@ ssize_t part_fail_store(struct device *dev,
 }
 #endif
 
+#if CONFIG_MMC_DW_ROCKCHIP
+static DEVICE_ATTR(volname, S_IRUGO, part_volname_show, NULL);
+#endif
 static DEVICE_ATTR(partition, S_IRUGO, part_partition_show, NULL);
 static DEVICE_ATTR(start, S_IRUGO, part_start_show, NULL);
 static DEVICE_ATTR(size, S_IRUGO, part_size_show, NULL);
@@ -183,6 +197,9 @@ static struct device_attribute dev_attr_fail =
 #endif
 
 static struct attribute *part_attrs[] = {
+#if CONFIG_MMC_DW_ROCKCHIP
+        &dev_attr_volname.attr,
+#endif    
 	&dev_attr_partition.attr,
 	&dev_attr_start.attr,
 	&dev_attr_size.attr,

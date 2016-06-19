@@ -35,6 +35,7 @@
 
 static DEFINE_IDA(mmc_host_ida);
 static DEFINE_SPINLOCK(mmc_host_lock);
+static struct mmc_host *sdio_host;
 
 static void mmc_host_classdev_release(struct device *dev)
 {
@@ -321,7 +322,9 @@ int mmc_of_parse(struct mmc_host *host)
 			host->dsr);
 		host->dsr_req = 0;
 	}
-
+        
+        if (of_property_read_bool(np, "supports-sdio")) 
+            sdio_host = host;
 	return mmc_pwrseq_alloc(host);
 }
 
@@ -467,3 +470,35 @@ void mmc_free_host(struct mmc_host *host)
 }
 
 EXPORT_SYMBOL(mmc_free_host);
+
+int mmc_host_rescan(struct mmc_host *host, int val, int is_cap_sdio_irq)
+{
+	if (NULL != sdio_host) {
+		if (!host)
+			host = sdio_host;
+		else
+			pr_info("%s: mmc_host_rescan pass in host from argument!\n",
+				mmc_hostname(host));
+	} else {
+		pr_err("sdio: host isn't  initialization successfully.\n");
+		return -ENOMEDIUM;
+	}
+
+	pr_info("%s:mmc host rescan start!\n", mmc_hostname(host));
+
+	/*  0: oob  1:cap-sdio-irq */
+	if (is_cap_sdio_irq == 1) {
+		host->caps |= MMC_CAP_SDIO_IRQ;
+	} else if (is_cap_sdio_irq == 0) {
+		host->caps &= ~MMC_CAP_SDIO_IRQ;
+	} else {
+		dev_err(&host->class_dev, "sdio: host doesn't identify oob or sdio_irq mode!\n");
+		return -ENOMEDIUM;
+	}
+	host->rescan_entered  =0;        
+	mmc_detect_change(host, 20);
+
+
+	return 0;
+}
+EXPORT_SYMBOL(mmc_host_rescan);
